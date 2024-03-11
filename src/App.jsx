@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Table, Button, Container, Modal, ModalBody, ModalHeader, FormGroup, ModalFooter } from 'reactstrap';
+import FiltroBusqueda from './Components/FiltroBusquedad'; 
 
 const data = [
   { id: 1, nombre: "Juan Carlos Pastas Valencia", descripcion: "Estudiante de Desarrollo Software" },
@@ -23,8 +24,8 @@ class App extends React.Component {
     },
     
     modalInsertar: false,
-    modalEditar: false // Agregamos modalEditar al estado inicial
-  
+    modalEditar: false, // Agregamos modalEditar al estado inicial
+    filtro: '' // Agregamos estado para filtro de búsqueda
   };
 
   handleChange = e => {
@@ -36,7 +37,7 @@ class App extends React.Component {
     });
   };
 
-  // Creacion de los modales
+  // Creación de los modales
 
   mostrarModalInsertar = () => {
     this.setState({ modalInsertar: true });
@@ -54,11 +55,9 @@ class App extends React.Component {
     this.setState({ modalEditar: false });
   }
 
-  // Cierre de la creacion de modales
+  // Cierre de la creación de modales
 
-
-
-  // Estados que va a tener la aplicacion
+  // Estado que va a tener la aplicación
 
   insertar = () => {
     let valorNuevo = { ...this.state.form };
@@ -69,48 +68,61 @@ class App extends React.Component {
   }
 
   actualizar = () => {
-    // Aquí iría la lógica para actualizar los datos en el estado
+    
+    // Aquí va la lógica para actualizar los datos en el estado
     this.setState({ modalEditar: false });
   }
 
   editar = (dato) => {
-  let contador=0;
-  let lista= this.state.data;
-  lista.map((registro)=>{
-    if(dato.id==registro.id){
-    lista[contador].nombre=dato.nombre;
-    lista[contador].descripcion=dato.descripcion;
-  }
-  contador++;  
-  });
-  this.setState({data:lista, modalEditar:false});
+    let contador=0;
+    let lista= this.state.data;
+    lista.map((registro)=>{
+      if(dato.id==registro.id){
+        lista[contador].nombre=dato.nombre;
+        lista[contador].descripcion=dato.descripcion;
+      }
+      contador++;  
+    });
+    this.setState({data:lista, modalEditar:false});
   }
 
   eliminar=(dato)=>{
-  let opcion=window.confirm("Realmente quieres eliminar el registro "+dato.id);
-  if(opcion){
-  let contador=0 
-  let lista=this.state.data;
-  lista.map((registro)=>{
-    if(registro.id==dato.id){
-      lista.splice(contador, 1);
-  }
-  contador++;  
-  });
-  this.setState({data:lista});
-  }
+    let opcion=window.confirm("Realmente quieres eliminar el registro "+ dato.id);
+    if(opcion){
+      let contador=0 
+      let lista=this.state.data;
+      lista.map((registro)=>{
+        if(registro.id==dato.id){
+          lista.splice(contador, 1);
+        }
+        contador++;  
+      });
+      this.setState({data:lista});
+    }
   }
   
-// Cierre de estados
-  
+  // Método para filtrar usuarios
+  filtrarUsuarios = (e) => {
+    this.setState({ filtro: e.target.value });
+  }
+
   render() {
+    const { filtro, data } = this.state;
+    const usuariosFiltrados = data.filter(usuario =>
+      usuario.nombre.toLowerCase().includes(filtro.toLowerCase())
+    );
+
     return (
       <>
-        <Container>
+        <Container style={{ marginTop: '20px' }}> {/* Margen superior añadido */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Boton Añadir */}
+            <Button color='success' onClick={this.mostrarModalInsertar}>Añadir</Button>
+
+            {/* Componente FiltroBusqueda */}
+            <FiltroBusqueda filtro={filtro} onFiltrarUsuarios={this.filtrarUsuarios} />
+          </div>
           <br />
-          {/* Boton Añadir */}
-          <Button color='success' onClick={this.mostrarModalInsertar}>Añadir</Button>
-          <br /> <br />
 
           {/* Tabla Principal */}
           <Table>
@@ -124,9 +136,10 @@ class App extends React.Component {
               </tr>
             </thead>
 
-            {/* Esta es la parte del cuerpo de la tabla. Donde cada usuario tiene su informacion y los botones de editar y eliminar. */}
+            {/* Esta es la parte del cuerpo de la tabla. Donde cada usuario tiene su informacion y los 
+            botones de editar y eliminar. */}
             <tbody>
-              {this.state.data.map((elemento) => (
+              {usuariosFiltrados.map((elemento) => (
                 <tr key={elemento.id}>
                   {/* Cada td es el campo que tiene cada usuario id, nombre, descripcion */}
                   <td>{elemento.id}</td>
@@ -204,8 +217,8 @@ class App extends React.Component {
 
           {/* ModalFooter */}
           <ModalFooter>
-          <Button color='primary' onClick={() => this.editar(this.state.form)}>Editar</Button>
-          <Button color='danger' onClick={this.ocultarModalEditar}>Cancelar</Button>
+            <Button color='primary' onClick={() => this.editar(this.state.form)}>Editar</Button>
+            <Button color='danger' onClick={this.ocultarModalEditar}>Cancelar</Button>
           </ModalFooter>
         </Modal>
       </>
